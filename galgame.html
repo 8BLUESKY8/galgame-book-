@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>午后的图书馆 - Web Galgame</title>
+    <style>
+        /* ========== 全局样式 ========== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+        }
+
+        /* ========== 游戏容器与背景 ========== */
+        #game-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            /* 默认背景，你可以通过修改这里的class来切换背景 */
+          background-image: url('95540f9b04dabb84a7a23467100bff7b.jpg');
+            background-size: cover;
+            background-position: center;
+            transition: background 0.8s ease-in-out;
+        }
+
+        /* 预留的背景类，你可以自己加图片 */
+        .scene-library {
+            background-image: url('95540f9b04dabb84a7a23467100bff7b.jpg');
+            /* 替换背景示例: background-image: url('img/library.jpg');95540f9b04dabb84a7a23467100bff7b.jpg */
+        }
+
+        .scene-sunset {
+
+                background:black;
+                /* 替换背景示例: background-image: url('img/sunset.jpg'); */
+
+        }
+    
+            /* 替换背景示例: background-image: url('img/library.jpg'); */
+      
+
+            /* 替换背景示例: background-image: url('img/sunset.jpg'); */
+        
+
+        /* ========== 角色立绘区域 ========== */
+        #character-area {
+            position: absolute;
+            bottom: 220px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+        }
+
+        .character-sprite {
+            width: 250px;
+            height: 400px;
+            background-color: rgba(255, 192, 203, 0.3);
+            border: 2px dashed rgba(255, 255, 255, 0.6);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: red;
+            font-size: 18px;
+            text-shadow: 1px 1px 2px black;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        /* ========== 角色立绘区域 ========== */
+        #character-area {
+            position: absolute;
+            bottom: 220px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+        }
+
+        .character-sprite {
+            width: 250px;
+            height: 400px;
+        }
+
+        .scene-sunset {
+            /* 替换背景示例: background-image: url('img/sunset.jpg'); */
+            background: linear-gradient(to right, #ffecd2 0%, #fcb69f 100%);
+        }
+
+        /* ========== 角色立绘区域 ========== */
+        #character-area {
+            position: absolute;
+            bottom: 130px;
+            left: 70%;
+            transform: translateX(-50%);
+            text-align: center;
+        }
+
+        .character-sprite {
+             width: 250px;
+            height: 400px;
+            background: url('07a6ab5e015f048d810d62f6b41a9076.jpg') no-repeat center / contain;
+            background-color: rgba(255, 192, 203, 0.3);
+        }
+
+        .character-sprite.visible {
+            opacity: 1;
+        }
+
+        /* ========== 对话框区域 ========== */
+        #dialog-box {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 200px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px 30px;
+            color: white;
+            cursor: pointer;
+        }
+
+        #speaker-name {
+            font-size: 20px;
+            font-weight: bold;
+            color:white;
+            margin-bottom: 10px;
+        }
+
+        #dialog-text {
+            font-size: 18px;
+            line-height: 1.6;
+            min-height: 50px;
+        }
+
+        /* 点击提示符 */
+        #click-indicator {
+            position: absolute;
+            bottom: 20px;
+            right: 30px;
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-top: 10px solid white;
+            animation: bounce 1s infinite;
+            display: none;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        /* ========== 选项区域 ========== */
+        #choices-box {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60%;
+            max-width: 500px;
+            display: none; /* 默认隐藏 */
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .choice-btn {
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            color:white;
+            padding: 15px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+        }
+
+        .choice-btn:hover {
+            background: rgba(102, 204, 255, 0.3);
+            border-color: #66ccff;
+            transform: translateX(10px);
+        }
+
+        /* ========== 标题画面 ========== */
+        #title-screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        #title-screen h1 {
+            color: white;
+            font-size: 48px;
+            margin-bottom: 50px;
+            text-shadow: 0 0 10px rgba(102, 204, 255, 0.8);
+        }
+
+        #start-btn {
+            padding: 15px 40px;
+            font-size: 20px;
+            background: transparent;
+            color: white;
+            border: 2px solid white;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        #start-btn:hover {
+            background: white;
+            color: black;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 游戏主容器 -->
+    <div id="game-container" class="scene-library">
+        
+        <!-- 标题画面 -->
+        <div id="title-screen">
+            <h1>午后的图书馆</h1>
+            <button id="start-btn">开始游戏</button>
+        </div>
+
+        <!-- 角色立绘 -->
+        <div id="character-area">
+            <div id="girl-sprite" class="character-sprite">
+                
+            </div>
+        </div>
+
+        <!-- 选项容器 -->
+        <div id="choices-box"></div>
+
+        <!-- 对话框 -->
+        <div id="dialog-box" style="display: none;">
+            <div id="speaker-name"></div>
+            <div id="dialog-text"></div>
+            <div id="click-indicator"></div>
+        </div>
+    </div>
+
+    <script>
+        // ========== 游戏数据与状态 ==========
+        let affection = 0;
+        let currentScene = 0;
+        let isTyping = false; // 防止打字机效果期间重复触发
+        let textQueue = [];   // 文本队列
+        let currentCharIndex = 0;
+        let typingInterval = null;
+
+        // DOM 元素
+        const gameContainer = document.getElementById('game-container');
+        const titleScreen = document.getElementById('title-screen');
+        const startBtn = document.getElementById('start-btn');
+        const dialogBox = document.getElementById('dialog-box');
+        const speakerName = document.getElementById('speaker-name');
+        const dialogText = document.getElementById('dialog-text');
+        const clickIndicator = document.getElementById('click-indicator');
+        const choicesBox = document.getElementById('choices-box');
+        const girlSprite = document.getElementById('girl-sprite');
+
+        // ========== 剧情脚本定义 ==========
+        const script = [
+            // Scene 0: 开场
+            { type: 'bg', value: 'scene-library' },
+            { type: 'char', value: 'hide' },
+            { type: 'text', speaker: '', text: '阳光透过巨大的落地窗洒在书架上，空气中弥漫着旧纸张的味道。' },
+            { type: 'text', speaker: '你', text: '（周末的图书馆真安静啊……我该找的那本参考书在哪里呢？）' },
+            { type: 'text', speaker: '', text: '突然，你听到一阵轻微的叹息声。' },
+            { type: 'char', value: 'show' },
+            { type: 'text', speaker: '', text: '转过头，你看到一位女孩正踮着脚尖，试图拿到书架最高层的一本书。' },
+            
+            // Scene 1: 第一个选择
+            { type: 'choice', text: '你要怎么做？', options: [
+                { text: '走过去，微笑着帮她把书拿下来。', affection: 2, next: 'choice1_1' },
+                { text: '装作没看见，继续找自己的书。', affection: 0, next: 'choice1_2' }
+            ]},
+
+            // 选择分支 A
+            { id: 'choice1_1', type: 'text', speaker: '你', text: '“那个，我帮你拿吧。”' },
+            { id: 'choice1_1', type: 'text', speaker: '', text: '你走过去，轻松地将书抽出来递给她。' },
+            { id: 'choice1_1', type: 'text', speaker: '女孩', text: '“啊，谢谢你！我够了好久都没拿到。”' },
+            { id: 'choice1_1', type: 'text', speaker: '', text: '女孩露出了灿烂的笑容。（好感度 +2）' },
+
+            // 选择分支 B
+            { id: 'choice1_2', type: 'text', speaker: '', text: '你低下了头，假装在看书。' },
+            { id: 'choice1_2', type: 'text', speaker: '', text: '女孩最终搬来凳子拿到了书，看了你一眼后默默离开。（好感度不变）' },
+
+            // Scene 2: 合流继续
+            { type: 'text', speaker: '', text: '拿完书后，你走到阅读区。' },
+            { type: 'bg', value: 'scene-sunset' },
+            { type: 'text', speaker: '', text: '不知不觉，图书馆快要闭馆了。夕阳将整个阅览室染成了橘红色。' },
+            { type: 'text', speaker: '', text: '你们一起走出图书馆大门，微风吹过，女孩停下脚步看向你。' },
+
+            // Scene 3: 第二个选择
+            { type: 'choice', text: '你要怎么做？', options: [
+                { text: '“那个...明天还能在这里见到你吗？”', affection: 2, next: 'choice2_1' },
+                { text: '“再见。”说完转身离开。', affection: 0, next: 'choice2_2' }
+            ]},
+
+            { id: 'choice2_1', type: 'text', speaker: '', text: '你鼓起勇气问出了口。' },
+            { id: 'choice2_2', type: 'text', speaker: '', text: '你挥了挥手，独自走进了夕阳中。' },
+
+            // 结局判定
+            { type: 'ending' }
+        ];
+
+        // ========== 核心引擎逻辑 ==========
+        
+        // 开始游戏
+        startBtn.addEventListener('click', () => {
+            titleScreen.style.display = 'none';
+            dialogBox.style.display = 'block';
+            affection = 0;
+            currentScene = 0;
+            processNextScript();
+        });
+
+        // 点击对话框推进剧情
+        dialogBox.addEventListener('click', () => {
+            if (isTyping) {
+                // 如果正在打字，直接显示全部文字
+                clearInterval(typingInterval);
+                dialogText.textContent = textQueue[textQueue.length - 1];
+                isTyping = false;
+                clickIndicator.style.display = 'block';
+            } else {
+                processNextScript();
+            }
+        });
+
+        function processNextScript() {
+            if (currentScene >= script.length) return;
+
+            let cmd = script[currentScene];
+
+            // 处理分支跳转逻辑（如果是分支，找到对应id继续）
+            if (cmd.id && cmd._handled) {
+                currentScene++;
+                processNextScript();
+                return;
+            }
+
+            // 执行指令
+            switch (cmd.type) {
+                case 'text':
+                    showDialog(cmd.speaker, cmd.text);
+                    currentScene++;
+                    break;
+                case 'bg':
+                    changeBackground(cmd.value);
+                    currentScene++;
+                    processNextScript(); // 背景切换不需要点击，直接执行下一条
+                    break;
+                case 'char':
+                    toggleCharacter(cmd.value);
+                    currentScene++;
+                    processNextScript(); // 立绘切换不需要点击，直接执行下一条
+                    break;
+                case 'choice':
+                    showChoices(cmd.text, cmd.options);
+                    // currentScene 会在选择后跳转，这里不++
+                    break;
+                case 'ending':
+                    showEnding();
+                    break;
+            }
+        }
+
+        // 显示对话（打字机效果）
+        function showDialog(speaker, text) {
+            clickIndicator.style.display = 'none';
+            speakerName.textContent = speaker;
+            textQueue.push(text);
+            isTyping = true;
+            currentCharIndex = 0;
+            dialogText.textContent = '';
+
+            typingInterval = setInterval(() => {
+                if (currentCharIndex < text.length) {
+                    dialogText.textContent += text.charAt(currentCharIndex);
+                    currentCharIndex++;
+                } else {
+                    clearInterval(typingInterval);
+                    isTyping = false;
+                    clickIndicator.style.display = 'block';
+                }
+            }, 50); // 打字速度，数字越小越快
+        }
+
+        // 切换背景
+        function changeBackground(className) {
+            gameContainer.className = className;
+        }
+
+        // 切换角色立绘
+        function toggleCharacter(action) {
+            if (action === 'show') {
+                girlSprite.classList.add('visible');
+            } else {
+                girlSprite.classList.remove('visible');
+            }
+        }
+
+        // 显示选项
+        function showChoices(text, options) {
+            dialogBox.style.display = 'none'; // 隐藏对话框
+            choicesBox.innerHTML = ''; // 清空选项
+            
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'choice-btn';
+                btn.textContent = opt.text;
+                btn.addEventListener('click', () => {
+                    affection += opt.affection;
+                    choicesBox.style.display = 'none';
+                    dialogBox.style.display = 'block';
+                    
+                    // 寻找跳转目标
+                    let targetIndex = script.findIndex(s => s.id === opt.next);
+                    if (targetIndex !== -1) {
+                        script[targetIndex]._handled = true; // 标记已处理
+                        currentScene = targetIndex;
+                        processNextScript();
+                    }
+                });
+                choicesBox.appendChild(btn);
+            });
+
+            choicesBox.style.display = 'flex';
+        }
+
+        // 显示结局
+        function showEnding() {
+            let endText = '';
+            if (affection >= 4) {
+                endText = '【True End：午后的约定】\n女孩的脸上泛起红晕，她点了点头：“嗯，我会来的。”\n夕阳下，两人的影子被拉得很长。这或许就是美好故事的开始吧。';
+            } else if (affection >= 2) {
+                endText = '【Good End：点头之交】\n女孩微微一笑：“也许吧，如果你也常来图书馆的话。”\n虽然没有留下联系方式，但下周的周末，你一定还会来到这个角落。';
+            } else {
+                endText = '【Normal End：擦肩而过】\n女孩有些尴尬地笑了笑：“啊...我可能没空呢。”\n她转身离开，你看着她的背影消失在街角。你们只是彼此生命中的过客。';
+            }
+
+            speakerName.textContent = '';
+            dialogText.textContent = endText;
+            clickIndicator.style.display = 'none';
+            
+            // 简单的重新开始逻辑：5秒后刷新页面
+            setTimeout(() => {
+                const restartBtn = document.createElement('button');
+                restartBtn.textContent = '返回标题';
+                restartBtn.style.cssText = 'margin-top:20px; padding:5px 15px; cursor:pointer;';
+                restartBtn.onclick = () => location.reload();
+                dialogText.appendChild(restartBtn);
+            }, 1000);
+        }
+
+    </script>
+</body>
+</html>
+
+
